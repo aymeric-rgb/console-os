@@ -1,0 +1,157 @@
+
+import lib/loaders/bmp.a
+import lib/loaders/ttf.a
+
+import lib/devices/graphics/surface.a
+import lib/devices/graphics/font.a
+
+var CONSOLE_PAGE_HIDDEN = 0;
+var CONSOLE_PAGE_SHOWN  = 1;
+
+Surface->var card_shadow = new(Surface).construct();
+card_shadow.texture Bmp.create_texture("perm/development/card_shadow.bmp");
+
+Font->var main_font = Ttf.create_font("perm/development/Ubuntu-Bold.ttf");
+
+class Console_page {
+	var target_visibility;
+	var transition;
+	
+	Texture->var title_texture;
+	Surface->var title_surface;
+	
+	var title_width;
+	var title_height;
+	
+	Texture->var paragraph_texture;
+	Surface->var paragraph_surface;
+	
+	var paragraph_width;
+	var paragraph_height;
+	
+	class Console_card {
+		Texture->var picture_texture;
+		Surface->var picture_surface;
+		
+		Texture->var text_texture;
+		Surface->var text_surface;
+		
+		var text_width;
+		var text_height;
+	}
+	
+	var card_count;
+	var cards;
+	
+	var target_card_selection;
+	var card_selection;
+	
+	func draw(var fps) {
+		if (self.target_visibility == CONSOLE_PAGE_HIDDEN and self.transition < PRECISION / 16) return;
+		self.transition = self.transition + (self.target_visibility * PRECISION - self.transition) * 7 / fps;
+		var transition = self.transition;
+		
+		var layer = self.target_visibility;
+		
+		if (self.card_count) {
+			self.card_selection = self.card_selection + (self.target_card_selection * PRECISION - self.card_selection) * 10 / fps;
+			
+			card_shadow.layer layer + 4;
+			
+			var index = -1;
+			while ((index = index + 1) < self.card_count) {
+				Console_card->var card = ?(self.cards + 8 * index);
+				
+				var x = index * PRECISION - self.card_selection;
+				var importance = PRECISION - Math.min(Math.abs(x), PRECISION);
+				
+				card_shadow.size PRECISION + importance / 3, PRECISION + importance / 3;
+				card_shadow.colour shadow_r, shadow_g, shadow_b, Math.mul_float(Math.mul_float(shadow_a, transition), PRECISION / 2 + importance / 2);
+				
+				var y = Math.mul_float(-PRECISION + transition, PRECISION / 2 + importance / 2) - PRECISION / 3;
+				card_shadow.draw x, y;
+				
+				if (card.text_surface) {
+					card.text_surface.size Math.pixels_x(card.text_width), Math.pixels_y(card.text_height);
+					card.text_surface.colour accent_r, accent_g, accent_b, Math.mul_float(Math.mul_float(accent_a, transition), PRECISION / 2 + importance / 2);
+					card.text_surface.layer layer + 6;
+					
+					card.text_surface.draw x, y + PRECISION / 12;
+				}
+			}
+			
+		} if (self.paragraph_surface) {
+			self.paragraph_surface.size Math.pixels_x(self.paragraph_width), Math.pixels_y(self.paragraph_height);
+			self.paragraph_surface.colour accent_r, accent_g, accent_b, Math.mul_float(accent_a, transition);
+			self.paragraph_surface.layer layer + 10;
+			
+			if (self.title_surface) self.paragraph_surface.draw 0, -PRECISION + transition / 3 * 2;
+			else                    self.paragraph_surface.draw 0, -PRECISION + transition;
+			
+		} if (self.title_surface) {
+			self.title_surface.size Math.pixels_x(self.title_width), Math.pixels_y(self.title_height);
+			self.title_surface.colour accent_r, accent_g, accent_b, Math.mul_float(accent_a, transition);
+			self.title_surface.layer layer + 11;
+			
+			if (self.paragraph_surface or self.card_count) self.title_surface.draw 0,  PRECISION - transition / 4;
+			else                                           self.title_surface.draw 0, -PRECISION + transition;
+		}
+	}
+	
+	func show self.target_visibility = CONSOLE_PAGE_SHOWN;
+	func hide self.target_visibility = CONSOLE_PAGE_HIDDEN;
+	
+	func set_cards(var count) {
+		self.card_count = count;
+		self.cards = new(8 * self.card_count);
+		
+		var index = -1;
+		while ((index = index + 1) < self.card_count) {
+			?(self.cards + 8 * index) = new(Console_card);
+		}
+	}
+	
+	func set_card_text(var index, var text) {
+		Console_card->var card = ?(self.cards + 8 * index);
+		
+		if (not card.text_surface) {
+			card.text_surface = new(Surface).construct();
+		}
+		
+		main_font.size PRECISION / 10;
+		card.text_surface.texture card.text_texture = main_font.create_texture(text);
+		
+		card.text_width  = main_font.get_width (text);
+		card.text_height = main_font.get_height(text);
+	}
+	
+	func set_title(var text) {
+		if (not self.title_surface) {
+			self.title_surface = new(Surface).construct();
+		}
+		
+		main_font.size PRECISION / 5;
+		self.title_surface.texture self.title_texture = main_font.create_texture(text);
+		
+		self.title_width  = main_font.get_width (text);
+		self.title_height = main_font.get_height(text);
+	}
+	
+	func set_paragraph(var text) {
+		if (not self.paragraph_surface) {
+			self.paragraph_surface = new(Surface).construct();
+		}
+		
+		main_font.size PRECISION / 15;
+		self.paragraph_surface.texture self.paragraph_texture = main_font.create_texture(text);
+		
+		self.paragraph_width  = main_font.get_width (text);
+		self.paragraph_height = main_font.get_height(text);
+	}
+	
+	func construct {
+		self.target_visibility = CONSOLE_PAGE_HIDDEN;
+		self.transition = 0;
+		return self;
+	}
+}

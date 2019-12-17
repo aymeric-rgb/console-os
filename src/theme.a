@@ -1,0 +1,75 @@
+
+import lib/math.a
+
+var shadow_r = 0;
+var shadow_g = 0;
+var shadow_b = 0;
+var shadow_a = PRECISION / 6;
+
+var window_r = PRECISION / 6 * 5;
+var window_g = PRECISION / 6 * 5;
+var window_b = PRECISION / 6 * 5;
+var window_a = PRECISION / 6 * 5;
+
+var accent_r = PRECISION / 6;
+var accent_g = PRECISION / 6;
+var accent_b = PRECISION / 6;
+var accent_a = PRECISION;
+
+var target_shadow_r; var target_shadow_g; var target_shadow_b; var target_shadow_a;
+var target_window_r; var target_window_g; var target_window_b; var target_window_a;
+var target_accent_r; var target_accent_g; var target_accent_b; var target_accent_a;
+
+func console_theme_set_light {
+	target_shadow_r = 0;
+	target_shadow_g = 0;
+	target_shadow_b = 0;
+	target_shadow_a = PRECISION / 6;
+	
+	target_window_r = PRECISION / 6 * 5;
+	target_window_g = PRECISION / 6 * 5;
+	target_window_b = PRECISION / 6 * 5;
+	target_window_a = PRECISION / 6 * 5;
+	
+	target_accent_r = PRECISION / 6;
+	target_accent_g = PRECISION / 6;
+	target_accent_b = PRECISION / 6;
+	target_accent_a = PRECISION;
+}
+
+func console_theme_set_dark {
+	target_shadow_r = 0;
+	target_shadow_g = 0;
+	target_shadow_b = 0;
+	target_shadow_a = PRECISION / 4;
+	
+	target_window_r = PRECISION / 6;
+	target_window_g = PRECISION / 6;
+	target_window_b = PRECISION / 6;
+	target_window_a = PRECISION / 6 * 5;
+	
+	target_accent_r = PRECISION / 6 * 5;
+	target_accent_g = PRECISION / 6 * 5;
+	target_accent_b = PRECISION / 6 * 5;
+	target_accent_a = PRECISION;
+}
+
+func console_theme_update(var fps) {
+	shadow_r = shadow_r + (target_shadow_r - shadow_r) * 5 / fps;
+	shadow_g = shadow_g + (target_shadow_g - shadow_g) * 5 / fps;
+	shadow_b = shadow_b + (target_shadow_b - shadow_b) * 5 / fps;
+	shadow_a = shadow_a + (target_shadow_a - shadow_a) * 5 / fps;
+	
+	window_r = window_r + (target_window_r - window_r) * 5 / fps;
+	window_g = window_g + (target_window_g - window_g) * 5 / fps;
+	window_b = window_b + (target_window_b - window_b) * 5 / fps;
+	window_a = window_a + (target_window_a - window_a) * 5 / fps;
+	
+	accent_r = accent_r + (target_accent_r - accent_r) * 5 / fps;
+	accent_g = accent_g + (target_accent_g - accent_g) * 5 / fps;
+	accent_b = accent_b + (target_accent_b - accent_b) * 5 / fps;
+	accent_a = accent_a + (target_accent_a - accent_a) * 5 / fps;
+}
+
+console_theme_set_light();
+print "[CONSOLE_OS] Theme set to \"light\"\n";

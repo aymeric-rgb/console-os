@@ -1,0 +1,58 @@
+
+import lib/devices/io/fs.a
+
+class Console_page {
+	var path;
+	var meta_path;
+	var meta_data;
+	var meta_bytes;
+	
+	func refresh {
+		if (Fs.read(self.meta_path, &self.meta_data, &self.meta_bytes)) {
+			print "WARNING Failed to load meta file for " ++ self.path ++ "\n";
+			return 1;
+		}
+		
+		var parsing_key = 0;
+		var parsing_value = -1;
+		
+		var index = 0;
+		loop {
+			byte current = *(self.meta_data + index);
+			
+			if (parsing_value >= 0 and (current == 0x3B /* ; */ or current == 0x0A /* \n */)) {
+				*(self.meta_data + index        ) = 0x00;
+				*(self.meta_data + parsing_value) = 0x00;
+				
+				var key   = self.meta_data + parsing_key;
+				var value = self.meta_data + parsing_value + 1;
+				
+				if (key === "type") {
+					print "Page type is " ++ value ++ "\n";
+				} else if (key === "count") {
+					print "Page has " ++ value ++ " elements\n";
+				}
+				
+				else {
+					print "WARNING Page meta file has an unknown key (" ++ key ++ ", with value " ++ value ++ ")\n";
+				}
+				
+				parsing_key = index + 1;
+				parsing_value = -1;
+			}
+			
+			else if (parsing_key >= 0 and current == 0x3A /* : */) parsing_value = index;
+			else if (not current) break;
+			
+			index = index + 1;
+		}
+	}
+	
+	func construct(var path) {
+		self.path = path;
+		self.meta_path = self.path ++ "/meta";
+		
+		self.refresh();
+		return self;
+	}
+}

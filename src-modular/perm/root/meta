@@ -1,0 +1,14 @@
+type:cards
+text:Choose a theme
+default:0
+next:home
+start:element
+type:text
+text:Light
+hover:ui.theme.light
+end:element
+start:element
+type:text
+text:Dark
+hover:ui.theme.dark
+end:element

@@ -1,0 +1,19 @@
+
+print "Console OS 1.0\n";
+
+import page.a
+
+import lib/video.a
+import lib/events.a
+
+Console_page->var page = new(Console_page).construct("perm/development/root");
+
+var events = new(Events);
+
+loop {
+	Video.clear 0, 0, 0, 0;
+	Video.flip();
+	
+	events.get();
+	if (events.quit) break;
+}

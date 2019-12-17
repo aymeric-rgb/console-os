@@ -1,0 +1,89 @@
+
+import lib/devices/input/joystick.a
+import lib/devices/input/keyboard.a
+
+Joystick->var console_joystick;
+Keyboard->var console_keyboard;
+
+if (Joystick.count()) {
+	console_joystick = new(Joystick).construct(0);
+	print "[CONSOLE_OS] Found connected joystick[0] with name \"" ++ console_joystick.name() ++ "\n";
+}
+
+if (Keyboard.count()) {
+	console_keyboard = new(Keyboard).construct(0);
+	print "[CONSOLE_OS] Found connected keyboard[0]\n";
+}
+
+func console_input_button_left_name {
+	if (console_joystick) return "the left D-PAD button";
+	if (console_keyboard) return "the left arrow key";
+	
+	return "<BUTTON_LEFT>";
+}
+
+func console_input_button_right_name {
+	if (console_joystick) return "the right D-PAD button";
+	if (console_keyboard) return "the right arrow key";
+	
+	return "<BUTTON_RIGHT>";
+}
+
+func console_input_button_up_name {
+	if (console_joystick) return "the upper D-PAD button";
+	if (console_keyboard) return "the upper arrow key";
+	
+	return "<BUTTON_UP>";
+}
+
+func console_input_button_down_name {
+	if (console_joystick) return "the bottom D-PAD button";
+	if (console_keyboard) return "the bottom arrow key";
+	
+	return "<BUTTON_DOWN>";
+}
+
+var console_pressing_left;
+var console_pressing_right;
+var console_pressing_up;
+var console_pressing_down;
+
+func console_input_button_left {
+	var result = 0;
+	if (console_joystick) result = result + console_joystick.button(0 /* TODO DPAD left */);
+	if (console_keyboard) result = result + console_keyboard.scancode(0x050);
+	
+	var was_pressing = console_pressing_left;
+	console_pressing_left = result;
+	return not was_pressing and result;
+}
+
+func console_input_button_right {
+	var result = 0;
+	if (console_joystick) result = result + console_joystick.button(0 /* TODO DPAD right */);
+	if (console_keyboard) result = result + console_keyboard.scancode(0x04F);
+	
+	var was_pressing = console_pressing_right;
+	console_pressing_right = result;
+	return not was_pressing and result;
+}
+
+func console_input_button_up {
+	var result = 0;
+	if (console_joystick) result = result + console_joystick.button(0 /* TODO DPAD up */);
+	if (console_keyboard) result = result + console_keyboard.scancode(0x052);
+	
+	var was_pressing = console_pressing_up;
+	console_pressing_up = result;
+	return not was_pressing and result;
+}
+
+func console_input_button_down {
+	var result = 0;
+	if (console_joystick) result = result + console_joystick.button(0 /* TODO DPAD down */);
+	if (console_keyboard) result = result + console_keyboard.scancode(0x051);
+	
+	var was_pressing = console_pressing_down;
+	console_pressing_down = result;
+	return not was_pressing and result;
+}
