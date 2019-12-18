@@ -1,5 +1,123 @@
 
 import lib/math.a
+import lib/devices/io/fs.a
+
+class Console_theme {
+	var name;
+	
+	var shadow_r; var shadow_g; var shadow_b; var shadow_a;
+	var window_r; var window_g; var window_b; var window_a;
+	var accent_r; var accent_g; var accent_b; var accent_a;
+	
+	func construct {
+		self.shadow_r = 0;
+		self.shadow_g = 0;
+		self.shadow_b = 0;
+		self.shadow_a = PRECISION / 6;
+		
+		self.window_r = PRECISION / 6 * 5;
+		self.window_g = PRECISION / 6 * 5;
+		self.window_b = PRECISION / 6 * 5;
+		self.window_a = PRECISION / 6 * 5;
+		
+		self.accent_r = PRECISION / 6;
+		self.accent_g = PRECISION / 6;
+		self.accent_b = PRECISION / 6;
+		self.accent_a = PRECISION;
+		
+		return self;
+	}
+}
+
+var CONSOLE_MAX_THEME_COUNT = 8;
+var console_theme_list = new(8 * CONSOLE_MAX_THEME_COUNT);
+var console_theme_count = 0;
+
+print "[CONSOLE_OS] Reading theme list ...\n";
+
+var console_theme_list_data;
+var console_theme_list_bytes;
+
+if (Fs.read(CONSOLE_THEME_LIST_PATH, &console_theme_list_data, &console_theme_list_bytes)) {
+	print "[CONSOLE_OS] WARNING Failed to read theme list file\n";
+} else {
+	var previous = 0;
+	
+	var index = 0;
+	loop {
+		byte current = *(console_theme_list_data + index);
+		
+		if (not current) {
+			break
+		} else if (current == 0x3B or current == 0x0A) {
+			if (index != previous) {
+				*(console_theme_list_data + index) = 0x00;
+				Console_theme->var theme = new(Console_theme).construct();
+				theme.name = console_theme_list_data + previous;
+				
+				var console_theme_data;
+				var console_theme_bytes;
+				
+				print "[CONSOLE_OS]\tReading \"" ++ theme.name ++ "\" theme ...\n";
+				if (Fs.read(CONSOLE_THEMES_PATH ++ theme.name, &console_theme_data, &console_theme_bytes)) {
+					print "[CONSOLE_OS]\tWARNING Failed to read theme file\n";
+				} else {
+					var previous_key = 0;
+					var previous_value = -1;
+					
+					var inner_index = 0;
+					loop {
+						byte current = *(console_theme_data + inner_index);
+						
+						if (not current) {
+							break
+							
+						} else if (previous_value >= 0 and (current == 0x3B or current == 0x0A)) {
+							*(console_theme_data + inner_index) = 0;
+							
+							var key   = console_theme_data + previous_key;
+							var value = console_theme_data + previous_value;
+							
+							if      (key === "shadow_r") theme.shadow_r = Math.string_to_int(value);
+							else if (key === "shadow_g") theme.shadow_g = Math.string_to_int(value);
+							else if (key === "shadow_b") theme.shadow_b = Math.string_to_int(value);
+							else if (key === "shadow_a") theme.shadow_a = Math.string_to_int(value);
+							
+							else if (key === "window_r") theme.window_r = Math.string_to_int(value);
+							else if (key === "window_g") theme.window_g = Math.string_to_int(value);
+							else if (key === "window_b") theme.window_b = Math.string_to_int(value);
+							else if (key === "window_a") theme.window_a = Math.string_to_int(value);
+							
+							else if (key === "accent_r") theme.accent_r = Math.string_to_int(value);
+							else if (key === "accent_g") theme.accent_g = Math.string_to_int(value);
+							else if (key === "accent_b") theme.accent_b = Math.string_to_int(value);
+							else if (key === "accent_a") theme.accent_a = Math.string_to_int(value);
+							
+							previous_value = -1;
+							previous_key = inner_index + 1;
+							
+						} else if (current == 0x0A) {
+							previous_key = inner_index + 1;
+							
+						} else if (current == 0x3A) {
+							*(console_theme_data + inner_index) = 0;
+							previous_value = inner_index + 1;
+						}
+						
+						inner_index = inner_index + 1;
+					}
+					
+					?(console_theme_list + 8 * console_theme_count) = theme;
+					console_theme_count = console_theme_count + 1;
+				}
+			}
+			
+			previous = index + 1;
+		}
+		
+		index = index + 1;
+	}
+}
 
 var shadow_r = 0;
 var shadow_g = 0;
@@ -20,38 +138,21 @@ var target_shadow_r; var target_shadow_g; var target_shadow_b; var target_shadow
 var target_window_r; var target_window_g; var target_window_b; var target_window_a;
 var target_accent_r; var target_accent_g; var target_accent_b; var target_accent_a;
 
-func console_theme_set_light {
-	target_shadow_r = 0;
-	target_shadow_g = 0;
-	target_shadow_b = 0;
-	target_shadow_a = PRECISION / 6;
+func console_set_theme(Console_theme->var theme) {
+	target_shadow_r = theme.shadow_r;
+	target_shadow_g = theme.shadow_g;
+	target_shadow_b = theme.shadow_b;
+	target_shadow_a = theme.shadow_a;
 	
-	target_window_r = PRECISION / 6 * 5;
-	target_window_g = PRECISION / 6 * 5;
-	target_window_b = PRECISION / 6 * 5;
-	target_window_a = PRECISION / 6 * 5;
+	target_window_r = theme.window_r;
+	target_window_g = theme.window_g;
+	target_window_b = theme.window_b;
+	target_window_a = theme.window_a;
 	
-	target_accent_r = PRECISION / 6;
-	target_accent_g = PRECISION / 6;
-	target_accent_b = PRECISION / 6;
-	target_accent_a = PRECISION;
-}
-
-func console_theme_set_dark {
-	target_shadow_r = 0;
-	target_shadow_g = 0;
-	target_shadow_b = 0;
-	target_shadow_a = PRECISION / 4;
-	
-	target_window_r = PRECISION / 6;
-	target_window_g = PRECISION / 6;
-	target_window_b = PRECISION / 6;
-	target_window_a = PRECISION / 6 * 5;
-	
-	target_accent_r = PRECISION / 6 * 5;
-	target_accent_g = PRECISION / 6 * 5;
-	target_accent_b = PRECISION / 6 * 5;
-	target_accent_a = PRECISION;
+	target_accent_r = theme.accent_r;
+	target_accent_g = theme.accent_g;
+	target_accent_b = theme.accent_b;
+	target_accent_a = theme.accent_a;
 }
 
 func console_theme_update(var fps) {
@@ -71,5 +172,5 @@ func console_theme_update(var fps) {
 	accent_a = accent_a + (target_accent_a - accent_a) * 5 / fps;
 }
 
-console_theme_set_light();
-print "[CONSOLE_OS] Theme set to \"light\"\n";
+print "[CONSOLE_OS] Theme set to \"" ++ (Console_theme->?console_theme_list).name ++ "\"\n";
+console_set_theme(?console_theme_list);

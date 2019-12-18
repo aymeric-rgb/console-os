@@ -1,40 +1,27 @@
 
 print "[CONSOLE_OS] Console OS 1.0\n";
 
+import paths.a
 import theme.a
 import user.a
-import page.a
 import input.a
+import page.a
 
 import lib/video.a
 import lib/events.a
 
 Surface->var frost = new(Surface).construct();
-frost.texture Bmp.create_texture("perm/development/frost.bmp");
+frost.texture Bmp.create_texture(CONSOLE_FROST_PATH);
 
 Surface->var tint = new(Surface).construct();
-tint.texture Bmp.create_texture("perm/development/tint.bmp");
+tint.texture Bmp.create_texture(CONSOLE_TINT_PATH);
 tint.layer 1;
 
 var events = new(Events);
+import pages/setup.a
 
-Console_page->var welcome_page = new(Console_page).construct();
-welcome_page.set_title "Welcome, " ++ user_name;
-welcome_page.set_paragraph "Press " ++ console_input_button_down_name() ++ " to continue";
-welcome_page.show();
-
-Console_page->var navigating_menus_page = new(Console_page).construct();
-navigating_menus_page.set_title "Navigating menus";
-navigating_menus_page.set_paragraph "Press " ++ console_input_button_left_name() ++ " to select the element on the left\nPress " ++ console_input_button_right_name() ++ " to select the element on the right\nPress " ++ console_input_button_up_name() ++ " to go back";
-
-Console_page->var theme_selection_page = new(Console_page).construct();
-theme_selection_page.set_title "Choose a theme";
-theme_selection_page.set_cards 2;
-theme_selection_page.set_card_text 0, "Light";
-theme_selection_page.set_card_text 1, "Dark";
-
-Console_page->var noa_page = new(Console_page).construct();
-noa_page.set_title "Noa is gay";
+console_pages_setup_init();
+console_pages_setup_show();
 
 var ticks = 0;
 
@@ -52,28 +39,9 @@ loop {
 	tint.colour window_r, window_g, window_b, window_a;
 	tint.draw 0, 0;
 	
-	welcome_page.draw fps;
-	navigating_menus_page.draw fps;
-	theme_selection_page.draw fps;
-	noa_page.draw fps;
-	
-	console_theme_update(fps);
+	console_pages_setup_draw fps;
+	console_theme_update fps;
 	Video.flip();
-	
-	if (console_input_button_right()) {
-		theme_selection_page.target_card_selection = 1;
-		console_theme_set_dark();
-		
-	} if (console_input_button_left()) {
-		theme_selection_page.target_card_selection = 0;
-		console_theme_set_light();
-	}
-	
-	if (console_input_button_down()) {
-		if      (welcome_page         .target_visibility == CONSOLE_PAGE_SHOWN) { welcome_page         .hide(); navigating_menus_page.show(); }
-		else if (navigating_menus_page.target_visibility == CONSOLE_PAGE_SHOWN) { navigating_menus_page.hide(); theme_selection_page .show(); }
-		else if (theme_selection_page.target_visibility == CONSOLE_PAGE_SHOWN) { navigating_menus_page.hide(); noa_page .show(); }
-	}
 	
 	events.get();
 	if (events.quit) break

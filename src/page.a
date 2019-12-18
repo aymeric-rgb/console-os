@@ -9,9 +9,9 @@ var CONSOLE_PAGE_HIDDEN = 0;
 var CONSOLE_PAGE_SHOWN  = 1;
 
 Surface->var card_shadow = new(Surface).construct();
-card_shadow.texture Bmp.create_texture("perm/development/card_shadow.bmp");
+card_shadow.texture Bmp.create_texture(CONSOLE_CARD_SHADOW_PATH);
 
-Font->var main_font = Ttf.create_font("perm/development/Ubuntu-Bold.ttf");
+Font->var main_font = Ttf.create_font(CONSOLE_FONT_PATH);
 
 class Console_page {
 	var target_visibility;
@@ -38,6 +38,11 @@ class Console_page {
 		
 		var text_width;
 		var text_height;
+		
+		var select_function;
+		var select_argument;
+		
+		var next_page;
 	}
 	
 	var card_count;
@@ -46,7 +51,71 @@ class Console_page {
 	var target_card_selection;
 	var card_selection;
 	
+	var next_page;
+	var prev_page;
+	
+	var next_function;
+	var next_argument;
+	
+	func show(var prev_page) {
+		if (prev_page) self.prev_page = prev_page;
+		self.target_visibility = CONSOLE_PAGE_SHOWN;
+	}
+	
+	func hide {
+		self.target_visibility = CONSOLE_PAGE_HIDDEN;
+	}
+	
 	func draw(var fps) {
+		if (self.target_visibility == CONSOLE_PAGE_SHOWN) {
+			if (console_input_button_down()) {
+				if (self.card_count) {
+					Console_card->var card = ?(self.cards + 8 * self.target_card_selection);
+					
+					if (card.next_page) {
+						self.hide();
+						Console_page->(card.next_page).show(self);
+					}
+				}
+				
+				if (self.target_visibility == CONSOLE_PAGE_SHOWN and self.next_page) {
+					self.hide();
+					Console_page->(self.next_page).show(self);
+				}
+				
+				if (self.next_function and self.target_visibility == CONSOLE_PAGE_HIDDEN) {
+					self.next_function(self.next_argument);
+				}
+			} else if (self.prev_page and console_input_button_up()) {
+				self.hide();
+				Console_page->(self.prev_page).show(0);
+			}
+		}
+		
+		if (self.target_visibility == CONSOLE_PAGE_SHOWN and self.card_count) {
+			var selection_changed = 0;
+			
+			if (console_input_button_right()) {
+				self.target_card_selection = self.target_card_selection + 1;
+				selection_changed = 1;
+				
+			} if (console_input_button_left()) {
+				self.target_card_selection = self.target_card_selection - 1;
+				selection_changed = 1;
+			}
+			
+			if (self.target_card_selection < 0) self.target_card_selection = self.card_count - 1;
+			else if (self.target_card_selection >= self.card_count) self.target_card_selection = 0;
+			
+			if (selection_changed) {
+				Console_card->var card = ?(self.cards + 8 * self.target_card_selection);
+				
+				if (card.select_function) {
+					card.select_function(card.select_argument);
+				}
+			}
+		}
+		
 		if (self.target_visibility == CONSOLE_PAGE_HIDDEN and self.transition < PRECISION / 16) return;
 		self.transition = self.transition + (self.target_visibility * PRECISION - self.transition) * 7 / fps;
 		var transition = self.transition;
@@ -72,7 +141,7 @@ class Console_page {
 				card_shadow.draw x, y;
 				
 				if (card.text_surface) {
-					card.text_surface.size Math.pixels_x(card.text_width), Math.pixels_y(card.text_height);
+					card.text_surface.size Math.mul_float(Math.pixels_x(card.text_width), PRECISION / 3 * 2 + importance / 3), Math.mul_float(Math.pixels_y(card.text_height), PRECISION / 3 * 2 + importance / 3);
 					card.text_surface.colour accent_r, accent_g, accent_b, Math.mul_float(Math.mul_float(accent_a, transition), PRECISION / 2 + importance / 2);
 					card.text_surface.layer layer + 6;
 					
@@ -93,13 +162,18 @@ class Console_page {
 			self.title_surface.colour accent_r, accent_g, accent_b, Math.mul_float(accent_a, transition);
 			self.title_surface.layer layer + 11;
 			
-			if (self.paragraph_surface or self.card_count) self.title_surface.draw 0,  PRECISION - transition / 4;
+			if (self.paragraph_surface or self.card_count) self.title_surface.draw 0,  PRECISION - transition / 3;
 			else                                           self.title_surface.draw 0, -PRECISION + transition;
 		}
 	}
 	
-	func show self.target_visibility = CONSOLE_PAGE_SHOWN;
-	func hide self.target_visibility = CONSOLE_PAGE_HIDDEN;
+	func next(var next_page) self.next_page = next_page;
+	func prev(var prev_page) self.prev_page = prev_page;
+	
+	func set_next(var function, var argument) {
+		self.next_function = function;
+		self.next_argument = argument;
+	}
 	
 	func set_cards(var count) {
 		self.card_count = count;
@@ -111,6 +185,11 @@ class Console_page {
 		}
 	}
 	
+	func set_card_next(var index, var next_page) {
+		Console_card->var card = ?(self.cards + 8 * index);
+		card.next_page = next_page;
+	}
+	
 	func set_card_text(var index, var text) {
 		Console_card->var card = ?(self.cards + 8 * index);
 		
@@ -118,11 +197,18 @@ class Console_page {
 			card.text_surface = new(Surface).construct();
 		}
 		
-		main_font.size PRECISION / 10;
+		main_font.size PRECISION / 7;
 		card.text_surface.texture card.text_texture = main_font.create_texture(text);
 		
 		card.text_width  = main_font.get_width (text);
 		card.text_height = main_font.get_height(text);
+	}
+	
+	func set_card_select(var index, var function, var argument) {
+		Console_card->var card = ?(self.cards + 8 * index);
+		
+		card.select_function = function;
+		card.select_argument = argument;
 	}
 	
 	func set_title(var text) {
