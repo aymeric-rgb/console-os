@@ -57,6 +57,12 @@ class Console_page {
 	var next_function;
 	var next_argument;
 	
+	var prev_function;
+	var prev_argument;
+	
+	var block_next;
+	var block_prev;
+	
 	func show(var prev_page) {
 		if (prev_page) self.prev_page = prev_page;
 		self.target_visibility = CONSOLE_PAGE_SHOWN;
@@ -68,7 +74,7 @@ class Console_page {
 	
 	func draw(var fps) {
 		if (self.target_visibility == CONSOLE_PAGE_SHOWN) {
-			if (console_input_button_down()) {
+			if (not self.block_next and console_input_button_down()) {
 				if (self.card_count) {
 					Console_card->var card = ?(self.cards + 8 * self.target_card_selection);
 					
@@ -78,17 +84,29 @@ class Console_page {
 					}
 				}
 				
-				if (self.target_visibility == CONSOLE_PAGE_SHOWN and self.next_page) {
+				if (self.target_visibility == CONSOLE_PAGE_SHOWN) {
 					self.hide();
-					Console_page->(self.next_page).show(self);
+					
+					if (self.next_page) {
+						Console_page->(self.next_page).show(self);
+					}
 				}
 				
 				if (self.next_function and self.target_visibility == CONSOLE_PAGE_HIDDEN) {
 					self.next_function(self.next_argument);
 				}
-			} else if (self.prev_page and console_input_button_up()) {
-				self.hide();
-				Console_page->(self.prev_page).show(0);
+			} else if (not self.block_prev and console_input_button_up()) {
+				if (self.target_visibility == CONSOLE_PAGE_SHOWN) {
+					self.hide();
+					
+					if (self.prev_page) {
+						Console_page->(self.prev_page).show(0);
+					}
+				}
+				
+				if (self.prev_function and self.target_visibility == CONSOLE_PAGE_HIDDEN) {
+					self.prev_function(self.prev_argument);
+				}
 			}
 		}
 		
@@ -116,7 +134,7 @@ class Console_page {
 			}
 		}
 		
-		if (self.target_visibility == CONSOLE_PAGE_HIDDEN and self.transition < PRECISION / 16) return;
+		if (self.target_visibility == CONSOLE_PAGE_HIDDEN and self.transition < PRECISION / 16) return 0;
 		self.transition = self.transition + (self.target_visibility * PRECISION - self.transition) * 7 / fps;
 		var transition = self.transition;
 		
@@ -173,6 +191,11 @@ class Console_page {
 	func set_next(var function, var argument) {
 		self.next_function = function;
 		self.next_argument = argument;
+	}
+	
+	func set_prev(var function, var argument) {
+		self.prev_function = function;
+		self.prev_argument = argument;
 	}
 	
 	func set_cards(var count) {

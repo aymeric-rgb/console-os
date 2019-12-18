@@ -5,5 +5,8 @@ var CONSOLE_THEMES_PATH = "perm/development/themes/";
 
 var CONSOLE_FONT_PATH = "perm/development/Ubuntu-Bold.ttf";
 var CONSOLE_CARD_SHADOW_PATH = "perm/development/card_shadow.bmp";
-var CONSOLE_FROST_PATH = "perm/development/frost.bmp";
+//~ var CONSOLE_WALLPAPER_PATH = "perm/development/wallpaper.bmp";
+//~ var CONSOLE_FROST_PATH = "perm/development/frost.bmp";
+var CONSOLE_WALLPAPER_PATH = "config/wallpaper/wallpaper.bmp";
+var CONSOLE_FROST_PATH = "config/wallpaper/frost.bmp";
 var CONSOLE_TINT_PATH = "perm/development/tint.bmp";

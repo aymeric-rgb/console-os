@@ -6,21 +6,12 @@ import theme.a
 import user.a
 import input.a
 import page.a
+import desktop.a
 
 import lib/video.a
 import lib/events.a
 
-Surface->var frost = new(Surface).construct();
-frost.texture Bmp.create_texture(CONSOLE_FROST_PATH);
-
-Surface->var tint = new(Surface).construct();
-tint.texture Bmp.create_texture(CONSOLE_TINT_PATH);
-tint.layer 1;
-
 var events = new(Events);
-import pages/setup.a
-
-console_pages_setup_init();
 console_pages_setup_show();
 
 var ticks = 0;
@@ -35,12 +26,9 @@ loop {
 	
 	Video.clear 0, 0, 0, 0;
 	
-	frost.draw 0, 0;
-	tint.colour window_r, window_g, window_b, window_a;
-	tint.draw 0, 0;
-	
-	console_pages_setup_draw fps;
+	draw_desktop fps;
 	console_theme_update fps;
+	
 	Video.flip();
 	
 	events.get();

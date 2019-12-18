@@ -29,6 +29,7 @@ func console_pages_setup_init {
 	console_pages_setup_wifi_password   = new(Console_page).construct();
 	console_pages_setup_done            = new(Console_page).construct();
 	
+	console_pages_setup_welcome.block_prev = 1;
 	console_pages_setup_welcome.set_title "Welcome, " ++ user_name;
 	console_pages_setup_welcome.set_paragraph "Press " ++ console_input_button_down_name() ++ " to continue";
 	
@@ -88,6 +89,7 @@ func console_pages_setup_init {
 	
 	console_pages_setup_done.set_title "All done!";
 	console_pages_setup_done.set_paragraph "Enjoy your new RetroGameBox.";
+	console_pages_setup_done.set_next console_desktop_show, 1;
 }
 
 func console_pages_setup_show {
