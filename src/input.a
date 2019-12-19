@@ -7,7 +7,7 @@ Keyboard->var console_keyboard;
 
 if (Joystick.count()) {
 	console_joystick = new(Joystick).construct(0);
-	print "[CONSOLE_OS] Found connected joystick[0] with name \"" ++ console_joystick.name() ++ "\n";
+	print "[CONSOLE_OS] Found connected joystick[0] with name \"" ++ console_joystick.name() ++ "\"\n";
 }
 
 if (Keyboard.count()) {
@@ -50,7 +50,7 @@ var console_pressing_down;
 
 func console_input_button_left {
 	var result = 0;
-	if (console_joystick) result = result + console_joystick.button(0 /* TODO DPAD left */);
+	if (console_joystick) result = result + console_joystick.button(13);
 	if (console_keyboard) result = result + console_keyboard.scancode(0x050);
 	
 	var was_pressing = console_pressing_left;
@@ -60,7 +60,7 @@ func console_input_button_left {
 
 func console_input_button_right {
 	var result = 0;
-	if (console_joystick) result = result + console_joystick.button(0 /* TODO DPAD right */);
+	if (console_joystick) result = result + console_joystick.button(14);
 	if (console_keyboard) result = result + console_keyboard.scancode(0x04F);
 	
 	var was_pressing = console_pressing_right;
@@ -70,7 +70,7 @@ func console_input_button_right {
 
 func console_input_button_up {
 	var result = 0;
-	if (console_joystick) result = result + console_joystick.button(0 /* TODO DPAD up */);
+	if (console_joystick) result = result + console_joystick.button(11);
 	if (console_keyboard) result = result + console_keyboard.scancode(0x052);
 	
 	var was_pressing = console_pressing_up;
@@ -80,7 +80,7 @@ func console_input_button_up {
 
 func console_input_button_down {
 	var result = 0;
-	if (console_joystick) result = result + console_joystick.button(0 /* TODO DPAD down */);
+	if (console_joystick) result = result + console_joystick.button(12);
 	if (console_keyboard) result = result + console_keyboard.scancode(0x051);
 	
 	var was_pressing = console_pressing_down;
