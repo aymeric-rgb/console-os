@@ -134,11 +134,12 @@ class Console_page {
 			}
 		}
 		
-		if (self.target_visibility == CONSOLE_PAGE_HIDDEN and self.transition < PRECISION / 16) return 0;
+		if (self.target_visibility == CONSOLE_PAGE_HIDDEN and self.transition < PRECISION / 16) return;
 		self.transition = self.transition + (self.target_visibility * PRECISION - self.transition) * 7 / fps;
 		var transition = self.transition;
 		
-		var layer = self.target_visibility;
+		var layer = current_layer;
+		current_layer = current_layer + 12;
 		
 		if (self.card_count) {
 			self.card_selection = self.card_selection + (self.target_card_selection * PRECISION - self.card_selection) * 10 / fps;

@@ -34,8 +34,10 @@ var time_text_height = main_font.get_height(time_text);
 
 var frost_amount = PRECISION;
 var frost_target = PRECISION;
+var desktop_shown = 0;
 
 func console_desktop_show(var shown) {
+	desktop_shown = 1;
 	frost_target = (1 - shown) * PRECISION;
 }
 
@@ -45,15 +47,19 @@ console_pages_apps_init();
 import pages/setup.a
 console_pages_setup_init();
 
+var desktop_r = PRECISION;
+var desktop_g = PRECISION;
+var desktop_b = PRECISION;
+
 func draw_desktop(var fps) {
 	frost_amount = frost_amount + (frost_target - frost_amount) * 5 / fps;
 	wallpaper.draw 0, 0;
 	
-	app_hint.colour accent_r, accent_g, accent_b, Math.mul_float(accent_a, (PRECISION - frost_amount) / 3 * 2);
+	app_hint.colour desktop_r, desktop_g, desktop_b, Math.mul_float(accent_a, (PRECISION - frost_amount) / 3 * 2);
 	app_hint.size Math.pixels_x(app_hint_text_width), Math.pixels_y(app_hint_text_height);
 	app_hint.draw 0, -PRECISION + (PRECISION - frost_amount) / 12 + Math.pixels_y(app_hint_text_height) / 2;
 	
-	time.colour accent_r, accent_g, accent_b, Math.mul_float(accent_a, (PRECISION - frost_amount));
+	time.colour desktop_r, desktop_g, desktop_b, Math.mul_float(accent_a, (PRECISION - frost_amount));
 	time.size Math.pixels_x(time_text_width), Math.pixels_y(time_text_height);
 	time.draw -PRECISION + (PRECISION - frost_amount) / 12 + Math.pixels_x(time_text_width) / 2, PRECISION - PRECISION / 12 - Math.pixels_y(time_text_height) / 2;
 	
@@ -63,10 +69,11 @@ func draw_desktop(var fps) {
 	tint.colour window_r, window_g, window_b, Math.mul_float(window_a, frost_amount);
 	tint.draw 0, 0;
 	
+	current_layer = current_layer + 6;
 	console_pages_setup_draw fps;
 	console_pages_apps_draw fps;
 	
-	if (frost_amount < PRECISION / 16 and console_input_button_down()) {
+	if (desktop_shown and console_input_button_down()) {
 		frost_target = PRECISION;
 		console_pages_apps_show();
 	}

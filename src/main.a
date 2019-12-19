@@ -1,5 +1,6 @@
 
 print "[CONSOLE_OS] Console OS 1.0\n";
+var current_layer;
 
 import paths.a
 import theme.a
@@ -17,6 +18,8 @@ console_pages_setup_show();
 var ticks = 0;
 
 loop {
+	current_layer = 0;
+	
 	if ((ticks = ticks + 1) < 20) {
 		Video.flip();
 		continue
