@@ -1,6 +1,5 @@
 
-import lib/loaders/bmp.a
-import lib/loaders/ttf.a
+import lib/loaders/ivx.a
 
 import lib/devices/graphics/surface.a
 import lib/devices/graphics/font.a
@@ -9,25 +8,23 @@ var CONSOLE_PAGE_HIDDEN = 0;
 var CONSOLE_PAGE_SHOWN  = 1;
 
 Surface->var card_shadow = new(Surface).construct();
-card_shadow.texture Bmp.create_texture(CONSOLE_CARD_SHADOW_PATH);
-
-Font->var main_font = Ttf.create_font(CONSOLE_FONT_PATH);
+card_shadow.texture Ipx.create_texture(CONSOLEOS_PATH_CARD_SHADOW);
 
 class Console_page {
 	var target_visibility;
-	var transition;
+	fixed var transition;
 	
 	Texture->var title_texture;
 	Surface->var title_surface;
 	
-	var title_width;
-	var title_height;
+	fixed var title_width;
+	fixed var title_height;
 	
 	Texture->var paragraph_texture;
 	Surface->var paragraph_surface;
 	
-	var paragraph_width;
-	var paragraph_height;
+	fixed var paragraph_width;
+	fixed var paragraph_height;
 	
 	class Console_card {
 		Texture->var picture_texture;
@@ -36,20 +33,25 @@ class Console_page {
 		Texture->var text_texture;
 		Surface->var text_surface;
 		
-		var text_width;
-		var text_height;
+		fixed var text_width;
+		fixed var text_height;
 		
 		var select_function;
 		var select_argument;
 		
+		var next_platform_command;
 		var next_page;
 	}
+	
+	Camera->var model_camera;
+	Ivx->var model_ivx;
+	Texture->var model_texture;
 	
 	var card_count;
 	var cards;
 	
-	var target_card_selection;
-	var card_selection;
+	fixed var target_card_selection;
+	fixed var card_selection;
 	
 	var next_page;
 	var prev_page;
@@ -78,7 +80,10 @@ class Console_page {
 				if (self.card_count) {
 					Console_card->var card = ?(self.cards + 8 * self.target_card_selection);
 					
-					if (card.next_page) {
+					if (card.next_platform_command) {
+						platform_command card.next_platform_command;
+						
+					} else if (card.next_page) {
 						self.hide();
 						Console_page->(card.next_page).show(self);
 					}
@@ -129,60 +134,58 @@ class Console_page {
 				Console_card->var card = ?(self.cards + 8 * self.target_card_selection);
 				
 				if (card.select_function) {
-					card.select_function(card.select_argument);
+					card.select_function card.select_argument;
 				}
 			}
 		}
 		
-		if (self.target_visibility == CONSOLE_PAGE_HIDDEN and self.transition < PRECISION / 16) return;
-		self.transition = self.transition + (self.target_visibility * PRECISION - self.transition) * 7 / fps;
-		var transition = self.transition;
+		if (self.target_visibility == CONSOLE_PAGE_HIDDEN and self.transition < 0.0625) return;
+		self.transition = self.transition + (self.target_visibility * 1.0 - self.transition) * 7 / fps;
+		fixed var transition = self.transition;
 		
 		var layer = current_layer;
 		current_layer = current_layer + 12;
 		
 		if (self.card_count) {
-			self.card_selection = self.card_selection + (self.target_card_selection * PRECISION - self.card_selection) * 10 / fps;
-			
-			card_shadow.layer layer + 4;
+			self.card_selection = self.card_selection + (self.target_card_selection * 1.0 - self.card_selection) * 10 / fps;
 			
 			var index = -1;
 			while ((index = index + 1) < self.card_count) {
 				Console_card->var card = ?(self.cards + 8 * index);
 				
-				var x = index * PRECISION - self.card_selection;
-				var importance = PRECISION - Math.min(Math.abs(x), PRECISION);
+				fixed var x = index * 1.0 - self.card_selection;
+				fixed var importance = 1.0 - Math.min(Math.abs(x), 1.0);
 				
-				card_shadow.size PRECISION + importance / 3, PRECISION + importance / 3;
-				card_shadow.colour shadow_r, shadow_g, shadow_b, Math.mul_float(Math.mul_float(shadow_a, transition), PRECISION / 2 + importance / 2);
+				card_shadow.size 1.0 + importance / 3, 1.0 + importance / 3;
+				card_shadow.colour shadow_r, shadow_g, shadow_b, (shadow_a * transition) * (0.5 + importance / 2);
 				
-				var y = Math.mul_float(-PRECISION + transition, PRECISION / 2 + importance / 2) - PRECISION / 3;
-				card_shadow.draw x, y;
+				fixed var y = (-1.0 + transition) * (0.5 + importance / 2) - 0.333333;
+				card_shadow.draw x, y, layer + 4;
 				
 				if (card.text_surface) {
-					card.text_surface.size Math.mul_float(Math.pixels_x(card.text_width), PRECISION / 3 * 2 + importance / 3), Math.mul_float(Math.pixels_y(card.text_height), PRECISION / 3 * 2 + importance / 3);
-					card.text_surface.colour accent_r, accent_g, accent_b, Math.mul_float(Math.mul_float(accent_a, transition), PRECISION / 2 + importance / 2);
-					card.text_surface.layer layer + 6;
+					card.text_surface.size Math.pixels_x(card.text_width) * (0.333333 * 2 + importance / 3), Math.pixels_y(card.text_height) * (0.333333 * 2 + importance / 3);
+					card.text_surface.colour accent_r, accent_g, accent_b, (accent_a * transition) * (0.5 + importance / 2);
 					
-					card.text_surface.draw x, y + PRECISION / 12;
+					card.text_surface.draw x, y + 0.083333, layer + 6;
 				}
 			}
 			
+		} if (self.model_ivx) {
+			print "TODO 3D models in pages\n";
+			
 		} if (self.paragraph_surface) {
 			self.paragraph_surface.size Math.pixels_x(self.paragraph_width), Math.pixels_y(self.paragraph_height);
-			self.paragraph_surface.colour accent_r, accent_g, accent_b, Math.mul_float(accent_a, transition);
-			self.paragraph_surface.layer layer + 10;
+			self.paragraph_surface.colour accent_r, accent_g, accent_b, accent_a * transition;
 			
-			if (self.title_surface) self.paragraph_surface.draw 0, -PRECISION + transition / 3 * 2;
-			else                    self.paragraph_surface.draw 0, -PRECISION + transition;
+			if (self.title_surface) self.paragraph_surface.draw 0, -1.0 + transition / 3 * 2, layer + 10;
+			else                    self.paragraph_surface.draw 0, -1.0 + transition, layer + 10;
 			
 		} if (self.title_surface) {
 			self.title_surface.size Math.pixels_x(self.title_width), Math.pixels_y(self.title_height);
-			self.title_surface.colour accent_r, accent_g, accent_b, Math.mul_float(accent_a, transition);
-			self.title_surface.layer layer + 11;
+			self.title_surface.colour accent_r, accent_g, accent_b, accent_a * transition;
 			
-			if (self.paragraph_surface or self.card_count) self.title_surface.draw 0,  PRECISION - transition / 3;
-			else                                           self.title_surface.draw 0, -PRECISION + transition;
+			if (self.paragraph_surface or self.card_count or self.model_ivx) self.title_surface.draw 0, 1.0 - transition / 3, layer + 11;
+			else                                                             self.title_surface.draw 0, transition - 1.0, layer + 11;
 		}
 	}
 	
@@ -221,11 +224,10 @@ class Console_page {
 			card.text_surface = new(Surface).construct();
 		}
 		
-		main_font.size PRECISION / 7;
-		card.text_surface.texture card.text_texture = main_font.create_texture(text);
+		card.text_surface.texture card.text_texture = main_font.create_texture(text, 0.285714);
 		
-		card.text_width  = main_font.get_width (text);
-		card.text_height = main_font.get_height(text);
+		card.text_width  = main_font.width;
+		card.text_height = main_font.height;
 	}
 	
 	func set_card_select(var index, var function, var argument) {
@@ -235,16 +237,24 @@ class Console_page {
 		card.select_argument = argument;
 	}
 	
+	func set_card_next_platform_command(var index, var command) {
+		Console_card->var card = ?(self.cards + 8 * index);
+		card.next_platform_command = command;
+	}
+	
+	func set_model(var ivx_path, var ipx_path) {
+		print "TODO 3D models in pages\n";
+	}
+	
 	func set_title(var text) {
 		if (not self.title_surface) {
 			self.title_surface = new(Surface).construct();
 		}
 		
-		main_font.size PRECISION / 5;
-		self.title_surface.texture self.title_texture = main_font.create_texture(text);
+		self.title_surface.texture self.title_texture = main_font.create_texture(text, 0.4);
 		
-		self.title_width  = main_font.get_width (text);
-		self.title_height = main_font.get_height(text);
+		self.title_width  = main_font.width;
+		self.title_height = main_font.height;
 	}
 	
 	func set_paragraph(var text) {
@@ -252,11 +262,10 @@ class Console_page {
 			self.paragraph_surface = new(Surface).construct();
 		}
 		
-		main_font.size PRECISION / 15;
-		self.paragraph_surface.texture self.paragraph_texture = main_font.create_texture(text);
+		self.paragraph_surface.texture self.paragraph_texture = main_font.create_texture(text, 0.133334);
 		
-		self.paragraph_width  = main_font.get_width (text);
-		self.paragraph_height = main_font.get_height(text);
+		self.paragraph_width  = main_font.width;
+		self.paragraph_height = main_font.height;
 	}
 	
 	func construct {

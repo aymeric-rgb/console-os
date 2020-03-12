@@ -1,80 +1,109 @@
 
-print "[CONSOLE_OS] Loading desktop ...\n";
+print "[CONSOLEOS] Loading desktop ...\n";
 
-Surface->var wallpaper = new(Surface).construct();
-wallpaper.texture Bmp.create_texture(CONSOLE_WALLPAPER_PATH);
+import lib/devices/graphics/surface.a
+import lib/devices/graphics/font.a
+import lib/loaders/ipx.a
 
-Surface->var frost = new(Surface).construct();
-frost.texture Bmp.create_texture(CONSOLE_FROST_PATH);
-frost.layer 2;
+Surface->var wallpaper_surface = new(Surface).construct();
+wallpaper_surface.texture Ipx.create_texture(CONSOLEOS_PATH_WALLPAPER_MAIN);
 
-Surface->var tint = new(Surface).construct();
-tint.texture Bmp.create_texture(CONSOLE_TINT_PATH);
-tint.layer 3;
+Font->var main_font = new(Font).construct(CONSOLEOS_PATH_FONT_MAIN);
+
+Surface->var time_text_surface = new(Surface).construct();
+fixed var time_text_surface_width; fixed var time_text_surface_height;
+
+fixed var time_text_surface_target_x; fixed var time_text_surface_target_y;
+fixed var time_text_surface_x; fixed var time_text_surface_y;
 
 Surface->var app_hint = new(Surface).construct();
-var app_hint_text = "Press " ++ console_input_button_down_name() ++ " to see your apps";
+app_hint.texture main_font.create_texture("Appuyez sur " ++ console_input_button_down_name() ++ " pour voir tous vos applications", 0.09);
 
-main_font.size PRECISION / 15;
-app_hint.texture main_font.create_texture(app_hint_text);
-app_hint.layer 1;
+fixed var app_hint_text_width  = Math.pixels_x(main_font.width );
+fixed var app_hint_text_height = Math.pixels_y(main_font.height);
 
-var app_hint_text_width  = main_font.get_width (app_hint_text);
-var app_hint_text_height = main_font.get_height(app_hint_text);
+Time->var time = new(Time).construct();
 
-Surface->var time = new(Surface).construct();
-var time_text = "13:37";
+fixed var desktop_seconds;
+fixed var desktop_sleep_timer;
 
-main_font.size PRECISION / 2;
-time.texture main_font.create_texture(time_text);
-time.layer 1;
+fixed var desktop_alpha;
+fixed var wallpaper_alpha;
 
-var time_text_width  = main_font.get_width (time_text);
-var time_text_height = main_font.get_height(time_text);
-
-var frost_amount = PRECISION;
-var frost_target = PRECISION;
-var desktop_shown = 0;
-
-func console_desktop_show(var shown) {
-	desktop_shown = 1;
-	frost_target = (1 - shown) * PRECISION;
+func desktop_update_time {
+	time.update();
+	var seperator = ":";
+	
+	if (time.minute < 10) {
+		seperator = ":0";
+	}
+	
+	time_text_surface.texture main_font.create_texture(str(time.hour) ++ seperator ++ str(time.minute), 0.5);
+	
+	time_text_surface_width  = Math.pixels_x(main_font.width );
+	time_text_surface_height = Math.pixels_y(main_font.height);
+	
+	time_text_surface.size time_text_surface_width, time_text_surface_height;
 }
 
-import pages/apps.a
-console_pages_apps_init();
+desktop_update_time();
+var sleeping;
 
-import pages/setup.a
-console_pages_setup_init();
+frozen var DESKTOP_SLEEP_TIME = 3.0;
+frozen var DESKTOP_SLEEP_UPDATE = 30.0;
 
-var desktop_r = PRECISION;
-var desktop_g = PRECISION;
-var desktop_b = PRECISION;
-
-func draw_desktop(var fps) {
-	frost_amount = frost_amount + (frost_target - frost_amount) * 5 / fps;
-	wallpaper.draw 0, 0;
+func desktop_draw(fixed var target_alpha, var fps) {
+	fixed var delta = 1.0 / fps;
 	
-	app_hint.colour desktop_r, desktop_g, desktop_b, Math.mul_float(accent_a, (PRECISION - frost_amount) / 3 * 2);
-	app_hint.size Math.pixels_x(app_hint_text_width), Math.pixels_y(app_hint_text_height);
-	app_hint.draw 0, -PRECISION + (PRECISION - frost_amount) / 12 + Math.pixels_y(app_hint_text_height) / 2;
-	
-	time.colour desktop_r, desktop_g, desktop_b, Math.mul_float(accent_a, (PRECISION - frost_amount));
-	time.size Math.pixels_x(time_text_width), Math.pixels_y(time_text_height);
-	time.draw -PRECISION + (PRECISION - frost_amount) / 12 + Math.pixels_x(time_text_width) / 2, PRECISION - PRECISION / 12 - Math.pixels_y(time_text_height) / 2;
-	
-	frost.colour PRECISION, PRECISION, PRECISION, frost_amount;
-	frost.draw 0, 0;
-	
-	tint.colour window_r, window_g, window_b, Math.mul_float(window_a, frost_amount);
-	tint.draw 0, 0;
-	
-	current_layer = current_layer + 6;
-	console_pages_setup_draw fps;
-	console_pages_apps_draw fps;
-	
-	if (desktop_shown and console_input_button_down()) {
-		frost_target = PRECISION;
-		console_pages_apps_show();
+	desktop_seconds = desktop_seconds + delta;
+	if (desktop_seconds >= 1.0) { // update time every 1 seconds
+		desktop_update_time();
+		desktop_seconds = 0;
 	}
+	
+	var target_wallpaper_alpha = target_alpha;
+	
+	desktop_sleep_timer = desktop_sleep_timer + delta;
+	if (desktop_sleep_timer >= DESKTOP_SLEEP_TIME) {
+		target_wallpaper_alpha = 0;
+		
+		if (not sleeping) {
+			sleeping = 1;
+			
+			time_text_surface_target_x = 0;
+			time_text_surface_target_y = 0;
+			
+		} else if (desktop_sleep_timer >= DESKTOP_SLEEP_TIME + DESKTOP_SLEEP_UPDATE) {
+			desktop_sleep_timer = DESKTOP_SLEEP_TIME;
+			
+			time_text_surface_target_x = random.range(-0.5, 0.5);
+			time_text_surface_target_y = random.range(-0.5, 0.5);
+		}
+		
+	} else {
+		sleeping = 0;
+	}
+	
+	time_text_surface_x = time_text_surface_x + (time_text_surface_target_x - time_text_surface_x) / fps * 3;
+	time_text_surface_y = time_text_surface_y + (time_text_surface_target_y - time_text_surface_y) / fps * 3;
+	
+	desktop_alpha = desktop_alpha + (target_alpha - desktop_alpha) / fps * 3;
+	wallpaper_alpha = wallpaper_alpha + (target_wallpaper_alpha - wallpaper_alpha) / fps * 3;
+	
+	wallpaper_surface.size 3.0 - wallpaper_alpha, 3.0 - wallpaper_alpha;
+	wallpaper_surface.colour 1.0, 1.0, 1.0, wallpaper_alpha;
+	wallpaper_surface.draw 0, 0, 0;
+	
+	time_text_surface.colour 1.0, 1.0, 1.0, desktop_alpha;
+	
+	if (not sleeping) {
+		time_text_surface_x = -1.8 + desktop_alpha + time_text_surface_width / 2;
+		time_text_surface_y = 0.8 - time_text_surface_height / 2;
+	}
+	
+	time_text_surface.draw time_text_surface_x, time_text_surface_y, 1;
+	
+	app_hint.colour 1.0, 1.0, 1.0, wallpaper_alpha / 2;
+	app_hint.size app_hint_text_width, app_hint_text_height;
+	app_hint.draw 0, -1.1 + wallpaper_alpha / 6 + app_hint_text_height / 2, 1;
 }

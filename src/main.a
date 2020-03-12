@@ -1,39 +1,34 @@
-
-print "[CONSOLE_OS] Console OS 1.0\n";
-var current_layer;
-
-import paths.a
-import theme.a
-import user.a
-import input.a
-import page.a
-import desktop.a
+print "[CONSOLEOS] Starting consoleOS ...\n";
 
 import lib/video.a
 import lib/events.a
+import lib/math.a
+
+import lib/devices/input/time.a
+import lib/utils/random.a
+Random->var random = new(Random).construct(Time.unix());
+
+import input.a
+import registry.a
+import desktop.a
+
+print "[CONSOLEOS] User name is " ++ Consoleos_registry.fetch("user/name") ++ "\n";
 
 var events = new(Events);
-console_pages_setup_show();
-
-var ticks = 0;
+var ticks;
 
 loop {
-	current_layer = 0;
+	Video.clear 0, 0, 0, 1.0;
+	var fps = Video.fps();
 	
-	if ((ticks = ticks + 1) < 20) {
-		Video.flip();
-		continue
+	if ((ticks = ticks + 1) > 20) { // wait for framerate to stabilize
+		desktop_draw 1.0, fps;
 	}
-	
-	var fps = Video.fps() + 1;
-	
-	Video.clear 0, 0, 0, 0;
-	
-	draw_desktop fps;
-	console_theme_update fps;
 	
 	Video.flip();
 	
 	events.get();
 	if (events.quit) break
 }
+
+return 0;

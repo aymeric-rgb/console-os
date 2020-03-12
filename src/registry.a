@@ -1,0 +1,24 @@
+import lib/devices/io/fs.a
+import paths.a
+
+class Consoleos_registry {
+	func fetch(var key) {
+		var data; var bytes;
+		if (Fs.read(CONSOLEOS_PATH_REGISTRY ++ key, &data, &bytes)) {
+			print "[CONSOLEOS] Failed to fetch key '" ++ key ++ "` from registry\n";
+			return "";
+		}
+		
+		*(data + bytes - 1) = 0;
+		return data;
+	}
+	
+	func write(var key, var data) {
+		var bytes = 0; var index = 0;
+		while (*(data + (index = index + 1)));
+		
+		if (Fs.write(CONSOLEOS_PATH_REGISTRY ++ key, data, bytes)) {
+			print "[CONSOLEOS] Failed to write to key '" ++ key ++ "` in registry\n";
+		}
+	}
+}

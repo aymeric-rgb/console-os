@@ -1,0 +1,15 @@
+var CONSOLE_USER_FILE_PATH = "perm/development/user";
+
+var CONSOLE_THEME_LIST_PATH = "perm/development/theme_list";
+var CONSOLE_THEMES_PATH = "perm/development/themes/";
+
+var CONSOLE_FONT_PATH = "perm/development/Ubuntu-Bold.ttf";
+var CONSOLE_CARD_SHADOW_PATH = "perm/development/card_shadow.ipx";
+var CONSOLE_WALLPAPER_PATH = "perm/development/wallpaper.ipx";
+var CONSOLE_FROST_PATH = "perm/development/frost.ipx";
+//~ var CONSOLE_WALLPAPER_PATH = "config/wallpaper/wallpaper.png";
+//~ var CONSOLE_FROST_PATH = "config/wallpaper/frost.png";
+var CONSOLE_TINT_PATH = "perm/development/tint.ipx";
+
+var CONSOLE_LOGO_MODEL_PATH = "perm/development/logo_model.ivx";
+var CONSOLE_LOGO_MODEL_TEXTURE_PATH = "perm/development/logo_model_texture.ipx";

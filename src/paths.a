@@ -1,12 +1,13 @@
-var CONSOLE_USER_FILE_PATH = "perm/development/user";
 
-var CONSOLE_THEME_LIST_PATH = "perm/development/theme_list";
-var CONSOLE_THEMES_PATH = "perm/development/themes/";
+frozen var CONSOLEOS_PATH_PREFIX = "perm/development/";
 
-var CONSOLE_FONT_PATH = "perm/development/Ubuntu-Bold.ttf";
-var CONSOLE_CARD_SHADOW_PATH = "perm/development/card_shadow.bmp";
-//~ var CONSOLE_WALLPAPER_PATH = "perm/development/wallpaper.bmp";
-//~ var CONSOLE_FROST_PATH = "perm/development/frost.bmp";
-var CONSOLE_WALLPAPER_PATH = "config/wallpaper/wallpaper.bmp";
-var CONSOLE_FROST_PATH = "config/wallpaper/frost.bmp";
-var CONSOLE_TINT_PATH = "perm/development/tint.bmp";
+frozen var CONSOLEOS_PATH_RESOURCES = CONSOLEOS_PATH_PREFIX ++ "resources/";
+frozen var CONSOLEOS_PATH_REGISTRY = CONSOLEOS_PATH_PREFIX ++ "registry/";
+
+frozen var CONSOLEOS_PATH_FONT_MAIN = CONSOLEOS_PATH_RESOURCES ++ "fonts/main.ttf";
+
+frozen var CONSOLEOS_PATH_CARD_SHADOW = CONSOLEOS_PATH_RESOURCES ++ "other/card_shadow.ipx";
+frozen var CONSOLEOS_PATH_TINT = CONSOLEOS_PATH_RESOURCES ++ "other/tint.ipx";
+
+frozen var CONSOLEOS_PATH_WALLPAPER_MAIN = CONSOLEOS_PATH_RESOURCES ++ "wallpaper/main.ipx";
+frozen var CONSOLEOS_PATH_WALLPAPER_BLUR = CONSOLEOS_PATH_RESOURCES ++ "wallpaper/blur.ipx";

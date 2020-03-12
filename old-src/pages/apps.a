@@ -1,0 +1,124 @@
+
+print "[CONSOLE_OS] Setting up apps page ...\n";
+
+Console_page->var console_pages_apps_list = new(Console_page).construct();
+	Console_page->var console_pages_demos_app = new(Console_page).construct();
+	Console_page->var console_pages_snes_app = new(Console_page).construct();
+
+func console_pages_apps_init {
+	console_pages_apps_list.set_title "Applications";
+	console_pages_apps_list.set_cards 3;
+	
+	console_pages_apps_list.set_card_text 0, "Teaser";
+	console_pages_apps_list.set_card_next_platform_command 0, "python ~/set-rgb.py 0 0 1; omxplayer ~/teaser.mp4";
+	
+	//~ console_pages_apps_list.set_card_text 1, "Presentation";
+	//~ console_pages_apps_list.set_card_next_platform_command 0, "cd ~/presentation-aqua-linux; sh build.sh execute";
+	
+	/* demos application */ {
+		console_pages_demos_app.set_title "Demos";
+		console_pages_demos_app.set_cards 1;
+		
+		console_pages_demos_app.set_card_text 0, "LJE";
+		console_pages_demos_app.set_card_next_platform_command 0, "python ~/set-rgb.py 1 0 0; cd ~/demos/lje-aqua-linux; sh build.sh execute";
+	}
+	
+	console_pages_apps_list.set_card_text 1, "Demos";
+	console_pages_apps_list.set_card_next 1, console_pages_demos_app;
+	
+	/* snes application */ {
+		console_pages_snes_app.set_title "Emulateur SNES";
+		console_pages_snes_app.set_cards 3;
+		
+		console_pages_snes_app.set_card_text 0, "Super Mario World 3";
+		console_pages_snes_app.set_card_next_platform_command 0, "python ~/set-rgb.py 0 1 1; tvservice -e=\"CEA 3\"; cd ~/pisnes; ./snes9x roms/smw3; tvservice -e=\"CEA 16\"";
+		
+		console_pages_snes_app.set_card_text 1, "Super Metroid";
+		console_pages_snes_app.set_card_next_platform_command 1, "python ~/set-rgb.py 1 0 0; tvservice -e=\"CEA 3\"; cd ~/pisnes; ./snes9x roms/metroid; tvservice -e=\"CEA 16\"";
+		
+		console_pages_snes_app.set_card_text 2, "Zelda";
+		console_pages_snes_app.set_card_next_platform_command 2, "python ~/set-rgb.py 0 1 0; tvservice -e=\"CEA 3\"; cd ~/pisnes; ./snes9x roms/zelda; tvservice -e=\"CEA 16\"";
+	}
+	
+	console_pages_apps_list.set_card_text 2, "SNES";
+	console_pages_apps_list.set_card_next 2, console_pages_snes_app;
+	
+	console_pages_apps_list.set_prev console_desktop_show, 1;
+}
+
+func console_pages_apps_show {
+	console_pages_apps_list.show 0;
+}
+
+func console_pages_apps_draw(var fps) {
+	console_pages_apps_list.draw fps;
+	console_pages_demos_app.draw fps;
+	console_pages_snes_app .draw fps;
+}
+
+//~ Console_page->var console_pages_apps_list = new(Console_page).construct();
+	//~ Console_page->var console_pages_settings_app = new(Console_page).construct();
+		//~ Console_page->var console_pages_settings_app_theme = new(Console_page).construct();
+		
+		//~ Console_page->var console_pages_settings_app_wifi = new(Console_page).construct();
+		//~ Console_page->var console_pages_settings_app_wifi_password = new(Console_page).construct();
+
+//~ func console_pages_apps_init {
+	//~ console_pages_apps_list.set_title "Applications";
+	//~ console_pages_apps_list.set_cards 3;
+	
+	//~ /* settings application */ {
+		//~ console_pages_settings_app.set_title "Settings";
+		//~ console_pages_settings_app.set_cards 2;
+		
+		//~ /* settings->themes */ {
+			//~ console_pages_settings_app_theme.set_title "Choose a theme";
+			//~ console_pages_settings_app_theme.set_cards console_theme_count + 1;
+			
+			//~ console_pages_settings_app_theme.set_card_text 0, "Install themes";
+			
+			//~ var index = -1;
+			//~ while ((index = index + 1) < console_theme_count) {
+				//~ console_pages_settings_app_theme.set_card_text index + 1, (Console_theme->?(console_theme_list + 8 * index)).name;
+				//~ console_pages_settings_app_theme.set_card_select index + 1, console_set_theme, ?(console_theme_list + 8 * index);
+			//~ }
+		//~ }
+		
+		//~ console_pages_settings_app.set_card_text 0, "Themes";
+		//~ console_pages_settings_app.set_card_next 0, console_pages_settings_app_theme;
+		
+		//~ /* settings->wifi */ {
+			//~ console_pages_settings_app_wifi.set_title "Choose a WiFi network";
+			//~ console_pages_settings_app_wifi.set_cards 3;
+			
+			//~ console_pages_settings_app_theme.set_card_text 0, "Install themes";
+			
+			//~ var index = -1;
+			//~ while ((index = index + 1) < console_theme_count) {
+				//~ console_pages_settings_app_theme.set_card_text index + 1, (Console_theme->?(console_theme_list + 8 * index)).name;
+				//~ console_pages_settings_app_theme.set_card_select index + 1, console_set_theme, ?(console_theme_list + 8 * index);
+			//~ }
+		//~ }
+		
+		//~ console_pages_settings_app.set_card_text 0, "Themes";
+		//~ console_pages_settings_app.set_card_next 0, console_pages_settings_app_theme;
+	//~ }
+	
+	//~ console_pages_apps_list.set_card_text 0, "Settings";
+	//~ console_pages_apps_list.set_card_next 0, console_pages_settings_app;
+	
+	//~ console_pages_apps_list.set_card_text 1, "Store";
+	//~ console_pages_apps_list.set_card_text 2, "Emulators";
+	
+	//~ console_pages_apps_list.set_prev console_desktop_show, 1;
+//~ }
+
+//~ func console_pages_apps_show {
+	//~ console_pages_apps_list.show 0;
+//~ }
+
+//~ func console_pages_apps_draw(var fps) {
+	//~ console_pages_apps_list         .draw fps;
+	//~ console_pages_settings_app      .draw fps;
+	//~ console_pages_settings_app_theme.draw fps;
+//~ }

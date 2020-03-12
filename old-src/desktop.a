@@ -1,0 +1,75 @@
+
+print "[CONSOLE_OS] Loading desktop ...\n";
+
+Surface->var wallpaper = new(Surface).construct();
+wallpaper.texture Ipx.create_texture(CONSOLE_WALLPAPER_PATH);
+
+Surface->var frost = new(Surface).construct();
+frost.texture Ipx.create_texture(CONSOLE_FROST_PATH);
+
+Surface->var tint = new(Surface).construct();
+tint.texture Ipx.create_texture(CONSOLE_TINT_PATH);
+
+Surface->var app_hint = new(Surface).construct();
+//~ var app_hint_text = "Press " ++ console_input_button_down_name() ++ " to see your apps";
+var app_hint_text = "Appuyez " ++ console_input_button_down_name() ++ " pour voir vos applications";
+
+app_hint.texture main_font.create_texture(app_hint_text, 0.133334);
+
+fixed var app_hint_text_width  = main_font.width;
+fixed var app_hint_text_height = main_font.height;
+
+Surface->var time = new(Surface).construct();
+var time_text = "13:37";
+
+time.texture main_font.create_texture(time_text, 1.0);
+
+fixed var time_text_width  = main_font.width;
+fixed var time_text_height = main_font.height;
+
+fixed var frost_amount = 1.0;
+fixed var frost_target = 1.0;
+var desktop_shown = 0;
+
+func console_desktop_show(var shown) {
+	desktop_shown = 1;
+	frost_target = (1 - shown) * 1.0;
+}
+
+import pages/apps.a
+console_pages_apps_init();
+
+import pages/setup.a
+console_pages_setup_init();
+
+fixed var desktop_r = 1.0;
+fixed var desktop_g = 1.0;
+fixed var desktop_b = 1.0;
+
+func draw_desktop(var fps) {
+	frost_amount = frost_amount + (frost_target - frost_amount) * 5 / fps;
+	wallpaper.draw 0, 0, 0;
+	
+	app_hint.colour desktop_r, desktop_g, desktop_b, accent_a * ((1.0 - frost_amount) / 3 * 2);
+	app_hint.size Math.pixels_x(app_hint_text_width), Math.pixels_y(app_hint_text_height);
+	app_hint.draw 0, -1.0 + (1.0 - frost_amount) / 12 + Math.pixels_y(app_hint_text_height) / 2, 1;
+	
+	time.colour desktop_r, desktop_g, desktop_b, accent_a * (1.0 - frost_amount);
+	time.size Math.pixels_x(time_text_width), Math.pixels_y(time_text_height);
+	time.draw -1.0 + (1.0 - frost_amount) / 12 + Math.pixels_x(time_text_width) / 2, 1.0 - 1.0 / 12 - Math.pixels_y(time_text_height) / 2, 1;
+	
+	frost.colour 1.0, 1.0, 1.0, frost_amount;
+	frost.draw 0, 0, 2;
+	
+	tint.colour window_r, window_g, window_b, window_a * frost_amount;
+	tint.draw 0, 0, 3;
+	
+	current_layer = current_layer + 6;
+	console_pages_setup_draw fps;
+	console_pages_apps_draw fps;
+	
+	if (desktop_shown and console_input_button_down()) {
+		frost_target = 1.0;
+		console_pages_apps_show();
+	}
+}

@@ -1,0 +1,40 @@
+
+print "[CONSOLE_OS] Console OS 1.0\n";
+var current_layer;
+var console_fps;
+
+import paths.a
+import theme.a
+import user.a
+import input.a
+import page.a
+import desktop.a
+
+import lib/video.a
+import lib/events.a
+
+var events = new(Events);
+console_pages_setup_show();
+
+var ticks = 0;
+
+loop {
+	current_layer = 0;
+	
+	if ((ticks = ticks + 1) < 20) {
+		Video.flip();
+		continue
+	}
+	
+	console_fps = Video.fps() + 1;
+	
+	Video.clear 0, 0, 0, 1.0;
+	
+	draw_desktop console_fps;
+	console_theme_update console_fps;
+	
+	Video.flip();
+	
+	events.get();
+	if (events.quit) break
+}
